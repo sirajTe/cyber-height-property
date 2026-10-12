@@ -1,14 +1,16 @@
 const projects = require('../data/projects');
+const { societies } = require('../data/sector76');
 const { site, esc, icon, absUrl } = require('./util');
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap';
 
 const NAV = [
+  { href: '/buy/', label: 'Buy' },
+  { href: '/rent/', label: 'Rent' },
+  { href: '/sector-76/', label: 'Sector 76' },
   { href: '/projects/', label: 'Projects' },
   { href: '/about/', label: 'About' },
-  { href: '/nri-corner/', label: 'NRI Corner' },
-  { href: '/emi-calculator/', label: 'EMI Calculator' },
-  { href: '/blog/', label: 'News & Blog' },
+  { href: '/blog/', label: 'Blog' },
   { href: '/contact/', label: 'Contact' },
 ];
 
@@ -45,10 +47,15 @@ const logo = (light) => `
   <span><strong>${esc(site.logoTop)}</strong><small>${esc(site.logoBottom)}</small></span>
 </a>`;
 
+// Sector 76 societies first (rent & resale), then new projects. Only project options carry
+// data-slug, which the brochure form uses to open /projects/<slug>/brochure/.
 const projectOptions = (selected = '') =>
-  `<option value="">Select a project</option>` +
-  projects.map((p) => `<option value="${esc(p.name)}" data-slug="${p.slug}"${p.slug === selected ? ' selected' : ''}>${esc(p.name)} — ${esc(p.location)}</option>`).join('') +
+  `<option value="">Select a society or project</option>` +
+  `<optgroup label="Sector 76 societies">${societies.map((s) => `<option value="${esc(s.name)}"${s.slug === selected ? ' selected' : ''}>${esc(s.name)}</option>`).join('')}</optgroup>` +
+  `<optgroup label="New projects">${projects.map((p) => `<option value="${esc(p.name)}" data-slug="${p.slug}"${p.slug === selected ? ' selected' : ''}>${esc(p.name)} — ${esc(p.location)}</option>`).join('')}</optgroup>` +
   `<option value="Not sure yet">Not sure yet / Help me choose</option>`;
+
+const INTENTS = ['Buy', 'Rent', 'Sell my property', 'Rent out my property', 'Invest'];
 
 let formSeq = 0;
 // Reusable lead form. kind: enquiry | site-visit | brochure | callback
@@ -77,9 +84,15 @@ function leadForm({ kind = 'enquiry', project = '', submit = 'Submit Enquiry', c
     <label for="${f('email')}">Email</label>
     <input id="${f('email')}" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
   </div>
-  <div class="field">
-    <label for="${f('project')}">Project of interest</label>
-    <select id="${f('project')}" name="project" required>${projectOptions(project)}</select>
+  <div class="field-row">
+    <div class="field">
+      <label for="${f('intent')}">I want to</label>
+      <select id="${f('intent')}" name="intent"><option value="">Select</option>${INTENTS.map((i) => `<option>${i}</option>`).join('')}</select>
+    </div>
+    <div class="field">
+      <label for="${f('project')}">Society / project</label>
+      <select id="${f('project')}" name="project" required>${projectOptions(project)}</select>
+    </div>
   </div>
   ${
     kind === 'site-visit'
@@ -143,6 +156,7 @@ function footer() {
     <div>
       <h3>Company</h3>
       <ul>
+        <li><a href="/buy/">Flats for Sale</a></li><li><a href="/rent/">Flats for Rent</a></li><li><a href="/sector-76/">Sector 76 Guide</a></li>
         <li><a href="/about/">About Us</a></li><li><a href="/careers/">Careers</a></li><li><a href="/blog/">News &amp; Blog</a></li>
         <li><a href="/nri-corner/">NRI Corner</a></li><li><a href="/emi-calculator/">EMI Calculator</a></li><li><a href="/contact/">Contact</a></li>
       </ul>

@@ -201,6 +201,10 @@
     $$('dialog[open]').forEach((d) => d.close());
     const proj = trigger && trigger.dataset.project;
     if (proj) { const sel = $('select[name="project"]', dlg); if (sel) sel.value = proj; }
+    const intent = $('select[name="intent"]', dlg);
+    if (intent) intent.value = (trigger && trigger.dataset.intent) || '';
+    const form = $('[data-lead-form]', dlg);
+    if (form) form.dataset.ref = (trigger && trigger.dataset.ref) || '';
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
     document.body.style.overflow = 'hidden';
   };
@@ -320,7 +324,8 @@
         country_code: fd.get('country_code'),
         phone: normalisePhone(fd.get('country_code'), fd.get('phone')),
         email: fd.get('email').trim(),
-        project: fd.get('project'),
+        // The API has a single `project` field, so intent and listing ID ride along in it: "Rent · Pyramid Pride · R-7605".
+        project: [fd.get('intent'), fd.get('project'), form.dataset.ref].filter(Boolean).join(' · ').slice(0, 120),
         visit_date: fd.get('visit_date') || undefined,
         visit_time: fd.get('visit_time') || undefined,
         consent: !!fd.get('consent'),
@@ -408,6 +413,40 @@
     };
     sels.forEach((s) => s.addEventListener('change', apply));
     filters.addEventListener('reset', () => setTimeout(apply));
+    apply();
+  }
+
+  /* ---------- Listing filters (/rent/, /buy/) ---------- */
+  const lf = $('[data-listing-filters]');
+  if (lf) {
+    const grid = $('[data-listing-grid]');
+    const cards = $$('.listing-card', grid);
+    const label = $('[data-count-label]'), empty = $('[data-empty]');
+    const sels = $$('[data-lf]', lf);
+    const qs = new URLSearchParams(location.search);
+    sels.forEach((s) => { const v = qs.get(s.name); if (v && [...s.options].some((o) => o.value === v)) s.value = v; });
+    const apply = () => {
+      const f = Object.fromEntries(sels.map((s) => [s.name, s.value]));
+      const [lo, hi] = f.budget ? f.budget.split('-').map(Number) : [0, Infinity];
+      let shown = 0;
+      cards.forEach((c) => {
+        const d = c.dataset;
+        const ok = (!f.society || d.society === f.society) && (!f.bhk || d.bhk === f.bhk)
+          && (!f.furnishing || d.furnishing === f.furnishing) && (!f.sale || d.sale === f.sale)
+          && +d.price >= lo && +d.price < hi;
+        c.classList.toggle('is-hidden', !ok);
+        if (ok) { shown++; c.classList.add('is-visible'); }
+      });
+      const order = f.sort ? [...cards].sort((a, b) => (f.sort === 'asc' ? 1 : -1) * (a.dataset.price - b.dataset.price)) : cards;
+      order.forEach((c) => grid.appendChild(c));
+      label.textContent = `${shown} flat${shown === 1 ? '' : 's'}${shown < cards.length ? ' match your filters' : ''}`;
+      empty.hidden = shown > 0;
+      const p = new URLSearchParams();
+      Object.entries(f).forEach(([k, v]) => v && p.set(k, v));
+      history.replaceState(null, '', p.toString() ? `?${p}` : location.pathname);
+    };
+    sels.forEach((s) => s.addEventListener('change', apply));
+    lf.addEventListener('reset', () => setTimeout(apply));
     apply();
   }
 

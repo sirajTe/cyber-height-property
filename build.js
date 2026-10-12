@@ -9,6 +9,7 @@ const { layout } = require('./src/layout');
 const home = require('./src/pages/home');
 const projectPage = require('./src/pages/project');
 const P = require('./src/pages/other');
+const S76 = require('./src/pages/sector76');
 
 const OUT = path.join(__dirname, 'dist');
 fs.rmSync(OUT, { recursive: true, force: true });
@@ -41,6 +42,7 @@ const pages = [
   home(),
   P.projectsListing(),
   ...projects.map(projectPage),
+  S76.hub(), ...S76.societies.map(S76.societyPage), S76.listingsPage('rent'), S76.listingsPage('buy'),
   P.about(), P.contact(), P.blogIndex(), ...posts.map(P.blogPost),
   P.careers(), P.nri(), P.emi(), ...P.legalPages(), P.notFound(),
 ];
@@ -58,7 +60,7 @@ const today = new Date().toISOString().slice(0, 10);
 const urls = pages.filter((p) => !p.noindex).map((p) => p.path);
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
-    .map((u) => `  <url><loc>${site.url}${u}</loc><lastmod>${today}</lastmod><priority>${u === '/' ? '1.0' : u.startsWith('/projects/') ? '0.9' : '0.6'}</priority></url>`)
+    .map((u) => `  <url><loc>${site.url}${u}</loc><lastmod>${today}</lastmod><priority>${u === '/' ? '1.0' : u.startsWith('/projects/') || u.startsWith('/sector-76/') || u === '/rent/' || u === '/buy/' ? '0.9' : '0.6'}</priority></url>`)
     .join('\n')}\n</urlset>\n`);
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /projects/*/brochure/\n\nSitemap: ${site.url}/sitemap.xml\n`);
 

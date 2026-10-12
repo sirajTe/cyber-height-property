@@ -3,6 +3,8 @@ const content = require('../../data/content');
 const posts = require('../../data/blog');
 const { site, esc, img, src, price, icon, fmtDate } = require('../util');
 const { sectionHead, projectCard, enquirySection } = require('../components');
+const { societies } = require('../../data/sector76');
+const listings = require('../../data/listings');
 
 module.exports = function home() {
   const bySlug = Object.fromEntries(projects.map((p) => [p.slug, p]));
@@ -49,6 +51,29 @@ module.exports = function home() {
     <div class="qs-field"><label for="qs-budget">Budget</label><select id="qs-budget" name="budget"><option value="">Any budget</option><option value="0-150">Under ₹1.5 Cr</option><option value="150-250">₹1.5 – 2.5 Cr</option><option value="250-400">₹2.5 – 4 Cr</option><option value="400-99999">Above ₹4 Cr</option></select></div>
     <button class="btn btn--navy" type="submit">Search Projects ${icon('arrow-right', 18)}</button>
   </form>
+</section>
+
+<section class="section">
+  <div class="container">
+    ${sectionHead('Sector 76, Gurgaon', 'Rent or buy in Sector 76', `We work in all ${societies.length} societies in the sector, from Suncity Avenue 76 and Pyramid Pride to Ninex City and DLF Privana.`)}
+    <div class="rb-tiles">
+      <a class="rb-tile reveal" href="/rent/">
+        ${img('photo-1600566753190-17f0baa2a6c3', '', { w: 900, sizes: '(min-width: 760px) 50vw, 100vw' })}
+        <h3>Flats for rent</h3>
+        <p>${listings.filter((l) => l.purpose === 'rent').length} verified rentals · 2, 3 &amp; 4 BHK from ₹15,000/month</p>
+        <span class="link-arrow">Browse rentals ${icon('arrow-right', 16)}</span>
+      </a>
+      <a class="rb-tile reveal" href="/buy/">
+        ${img('photo-1600585154340-be6161a56a0c', '', { w: 900, sizes: '(min-width: 760px) 50vw, 100vw' })}
+        <h3>Flats for sale</h3>
+        <p>${listings.filter((l) => l.purpose === 'buy').length} resale &amp; new bookings · from ₹${Math.min(...societies.map((s) => s.buy[0]))} lakh</p>
+        <span class="link-arrow">Browse flats for sale ${icon('arrow-right', 16)}</span>
+      </a>
+    </div>
+    <nav class="society-chips" aria-label="Sector 76 societies">
+      ${societies.map((s) => `<a href="/sector-76/${s.slug}/">${esc(s.name)}</a>`).join('')}
+    </nav>
+  </div>
 </section>
 
 <section class="section">
